@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RECOX</title>
+  <!-- Rocket Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Completely hide scrollbars everywhere with smooth scrolling */
+    html {
+      scroll-behavior: smooth;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+
+    body {
+      width: 100vw;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+      background: #ffffff;
+      color: #000000;
+      font-family: 'Geist Mono', monospace;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar,
+    *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      background: transparent !important;
+    }
+
+    /* High-Performance Lightweight Grain Canvas Overlay */
+    #noise-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 15;
+      opacity: 0.18;
+      mix-blend-mode: multiply;
+    }
+
+    /* Transparent Floating Top Header */
+    .transparent-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.75rem 3rem;
+      background: transparent;
+      border: none;
+    }
+
+    .brand-cluster {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .brand-icon {
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .brand-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #000000;
+    }
+
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: rgba(0, 0, 0, 0.5);
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.4rem 1.1rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-tab-btn:hover {
+      color: #000000;
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    .nav-tab-btn.active {
+      color: #000000;
+      background: rgba(0, 0, 0, 0.07);
+      border-color: rgba(0, 0, 0, 0.12);
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.55);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* Hero Section (100vh Full Screen) */
+    .hero-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      will-change: transform;
+    }
+
+    .hero-interactive {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-top: -3.5rem;
+    }
+
+    .tagline-badge {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: rgba(0, 0, 0, 0.45);
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-heading {
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #000000;
+      line-height: 1.15;
+      margin-bottom: 0.65rem;
+    }
+
+    .hero-subtext {
+      font-size: 0.95rem;
+      color: rgba(0, 0, 0, 0.55);
+      letter-spacing: -0.01em;
+      max-width: 480px;
+      line-height: 1.5;
+      margin-bottom: 2.25rem;
+    }
+
+    /* =========================================
+       LIQUID GRADIENT DASHBOARD BUTTON
+       ========================================= */
+    .liquid-btn-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 200px;
+      height: 3.25rem;
+      margin: 0 auto;
+      text-decoration: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transform: translateZ(0);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .liquid-btn-wrapper:hover {
+      transform: scale(1.04) translateY(-1px);
+    }
+
+    /* Outer Glow Aura with Deep Blur */
+    .liquid-outer-aura {
+      position: absolute;
+      width: 114%;
+      height: 132%;
+      top: 6%;
+      left: 50%;
+      transform: translateX(-50%);
+      filter: blur(18px);
+      opacity: 0.75;
+      pointer-events: none;
+      border-radius: 14px;
+      overflow: hidden;
+      transition: opacity 0.3s ease, filter 0.3s ease;
+      z-index: 1;
+    }
+
+    .liquid-btn-wrapper:hover .liquid-outer-aura {
+      opacity: 0.95;
+      filter: blur(22px);
+    }
+
+    .liquid-aura-bg {
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      background: #d9d9d9;
+      filter: blur(6px);
+    }
+
+    /* Ambient Deep Core */
+    .liquid-ambient-core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -40%);
+      width: 94%;
+      height: 114%;
+      border-radius: 14px;
+      background: #010128;
+      filter: blur(7.5px);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Inner Pill Hosting Liquid Waves */
+    .liquid-inner-pill {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #000000;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+      z-index: 3;
+    }
+
+    .liquid-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    /* Spark Highlight Rings */
+    .spark-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      border: 2px solid transparent;
+      border-bottom-color: rgba(255, 255, 255, 0.9);
+      border-top-color: rgba(255, 255, 255, 0.2);
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .spark-1 { filter: blur(2px); }
+    .spark-2 { filter: blur(3px); }
+    .spark-3 { filter: blur(5px); }
+
+    /* Center Blue Glow */
+    .liquid-center-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -40%);
+      width: 70%;
+      height: 42%;
+      border-radius: 14px;
+      filter: blur(14px);
+      background: #000066;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* Label on Top */
+    .liquid-btn-label {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #ffffff;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    .liquid-arrow {
+      font-size: 1rem;
+      color: #a5f3fc;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+    }
+
+    .liquid-btn-wrapper:hover .liquid-arrow {
+      transform: translate(2px, -2px);
+      color: #ffffff;
+    }
+
+    /* Slow Walking Crowd Canvas */
+    .crowd-canvas-wrap {
+      position: absolute;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #crowd-canvas {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 90vh;
+      display: block;
+    }
+
+    /* Modals for ABOUT and DEV */
+    .page-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 2rem;
+      animation: modalFade 0.25s ease forwards;
+    }
+
+    .page-modal.active {
+      display: flex;
+    }
+
+    @keyframes modalFade {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-card {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 24px;
+      padding: 3rem;
+      max-width: 680px;
+      width: 100%;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
+      position: relative;
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: rgba(0, 0, 0, 0.05);
+      border: none;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close-btn:hover {
+      background: #000000;
+      color: #ffffff;
+    }
+
+    .modal-kicker {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba(0, 0, 0, 0.45);
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-title {
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #000000;
+      margin-bottom: 1rem;
+    }
+
+    .modal-desc {
+      font-size: 0.92rem;
+      color: rgba(0, 0, 0, 0.65);
+      line-height: 1.65;
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.88rem;
+      color: rgba(0, 0, 0, 0.8);
+      line-height: 1.4;
+    }
+
+    .code-block {
+      background: #0d1117;
+      color: #f0f6fc;
+      border-radius: 12px;
+      padding: 1.25rem;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .transparent-header { padding: 1.25rem 1.5rem; }
+      .header-status { display: none; }
+      .hero-heading { font-size: 2rem; }
+      .modal-card { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Optimized Lightweight Grain Canvas -->
+  <canvas id="noise-canvas"></canvas>
+
+  <!-- Transparent Floating Header On Top -->
+  <header class="transparent-header">
+    <div class="brand-cluster" onclick="switchPage('home')">
+      <span class="brand-icon">🚀</span>
+      <span class="brand-name">RECOX</span>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" aria-label="Main Navigation">
+      <button class="nav-tab-btn active" id="btn-home" onclick="switchPage('home')">Home</button>
+      <button class="nav-tab-btn" id="btn-about" onclick="switchPage('about')">About</button>
+      <button class="nav-tab-btn" id="btn-dev" onclick="switchPage('dev')">Dev</button>
+    </nav>
+
+    <div class="header-status">
+      <div class="status-dot"></div>
+      <span>Airspace Online</span>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-container" id="hero-sec">
+    <div class="hero-interactive">
+      <div class="tagline-badge">Autonomous Fleet Operations</div>
+      <h1 class="hero-heading">Drone Management System</h1>
+      <p class="hero-subtext">
+        Real-time mission routing, autonomous telemetry syncing, and tactical swarm coordination.
+      </p>
+
+      <!-- LIQUID GRADIENT ANIMATED DASHBOARD BUTTON -->
+      <a href="https://recolabrecox.vercel.app/" class="liquid-btn-wrapper" id="liquid-dashboard-btn" target="_blank" rel="noopener noreferrer">
+        <!-- Outer Glow Aura -->
+        <div class="liquid-outer-aura">
+          <span class="liquid-aura-bg"></span>
+          <canvas class="liquid-canvas" id="liquid-glow-canvas"></canvas>
+        </div>
+
+        <!-- Ambient Dark Core -->
+        <div class="liquid-ambient-core"></div>
+
+        <!-- Inner Liquid Pill -->
+        <div class="liquid-inner-pill">
+          <canvas class="liquid-canvas" id="liquid-main-canvas"></canvas>
+          <div class="spark-ring spark-1"></div>
+          <div class="spark-ring spark-2"></div>
+          <div class="spark-ring spark-3"></div>
+          <div class="liquid-center-glow"></div>
+
+          <!-- Label -->
+          <span class="liquid-btn-label">
+            <span>Dashboard</span>
+            <span class="liquid-arrow">↗</span>
+          </span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Slow Animated Crowd Canvas -->
+    <div class="crowd-canvas-wrap">
+      <canvas id="crowd-canvas"></canvas>
+    </div>
+  </section>
+
+  <!-- ABOUT Modal Overlay -->
+  <div class="page-modal" id="modal-about">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="switchPage('home')">✕</button>
+      <div class="modal-kicker">About RECOX</div>
+      <h2 class="modal-title">Autonomous Sky Mesh</h2>
+      <p class="modal-desc">
+        RECOX is a mission-grade Drone Management System engineered for coordinated UAV fleets, autonomous delivery corridors, and distributed airspace defense.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item">
+          <span>🛰️</span>
+          <span><strong>Dynamic Airspace Corridors:</strong> Real-time 4D geofencing and automatic deconfliction over live airspace.</span>
+        </div>
+        <div class="feature-item">
+          <span>⚡</span>
+          <span><strong>Peer-to-Peer Swarm Mesh:</strong> Resilient decentralized telemetry with zero ground station single-point-of-failure.</span>
+        </div>
+        <div class="feature-item">
+          <span>🛡️</span>
+          <span><strong>Autonomous Failsafe:</strong> Instant return-to-base and safe descent emergency protocols.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEV Modal Overlay -->
+  <div class="page-modal" id="modal-dev">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="switchPage('home')">✕</button>
+      <div class="modal-kicker">Developer Portal</div>
+      <h2 class="modal-title">RECOX Fleet SDK</h2>
+      <p class="modal-desc">
+        Integrate and dispatch autonomous drone missions programmatically with the RECOX Node/TypeScript SDK.
+      </p>
+      <div class="code-block">
+<pre><code>npm install @recox/sdk
+
+import { RecoxSwarm } from "@recox/sdk";
+
+const swarm = new RecoxSwarm({ apiKey: "rcx_live_key" });
+await swarm.dispatchMission({
+  corridor: "sector-04",
+  drones: 8,
+  speed: "slow"
+});</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 0. High-Speed Pre-rendered Noise Canvas (Eliminates SVG repainting lag)
+    (function initNoiseCanvas() {
+      const nc = document.getElementById('noise-canvas');
+      if (!nc) return;
+      const ctx = nc.getContext('2d');
+      if (!ctx) return;
+
+      const tile = document.createElement('canvas');
+      tile.width = 128;
+      tile.height = 128;
+      const tCtx = tile.getContext('2d');
+      const imgData = tCtx.createImageData(128, 128);
+      for (let i = 0; i < imgData.data.length; i += 4) {
+        const v = (Math.random() * 255) | 0;
+        imgData.data[i] = v;
+        imgData.data[i + 1] = v;
+        imgData.data[i + 2] = v;
+        imgData.data[i + 3] = (Math.random() * 140) | 0;
+      }
+      tCtx.putImageData(imgData, 0, 0);
+
+      function resize() {
+        nc.width = window.innerWidth;
+        nc.height = window.innerHeight;
+        const pat = ctx.createPattern(tile, 'repeat');
+        if (pat) {
+          ctx.fillStyle = pat;
+          ctx.fillRect(0, 0, nc.width, nc.height);
+        }
+      }
+      resize();
+      window.addEventListener('resize', resize);
+    })();
+
+    // Page switcher (HOME / ABOUT / DEV)
+    function switchPage(page) {
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('btn-' + page);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const modalAbout = document.getElementById('modal-about');
+      const modalDev = document.getElementById('modal-dev');
+
+      if (page === 'about') {
+        modalAbout.classList.add('active');
+        modalDev.classList.remove('active');
+      } else if (page === 'dev') {
+        modalDev.classList.add('active');
+        modalAbout.classList.remove('active');
+      } else {
+        modalAbout.classList.remove('active');
+        modalDev.classList.remove('active');
+      }
+    }
+
+    // =========================================
+    // LIQUID GRADIENT ANIMATION ENGINE
+    // =========================================
+    (function initLiquidButton() {
+      const mainCanvas = document.getElementById('liquid-main-canvas');
+      const glowCanvas = document.getElementById('liquid-glow-canvas');
+      const btn = document.getElementById('liquid-dashboard-btn');
+      if (!mainCanvas || !btn) return;
+
+      const mCtx = mainCanvas.getContext('2d');
+      const gCtx = glowCanvas ? glowCanvas.getContext('2d') : null;
+
+      const COLORS = [
+        '#FFFFFF', '#1E10C5', '#9089E2', '#FCFCFE', '#F9F9FD',
+        '#B2B8E7', '#0E2DCB', '#0017E9', '#4743EF', '#7D7BF4',
+        '#0B06FC', '#C5C1EA', '#1403DE', '#B6BAF6', '#C1BEEB',
+        '#290ECB', '#3F4CC0'
+      ];
+
+      let isHovered = false;
+      let t = 0;
+      let w = 200, h = 52;
+
+      function resize() {
+        w = btn.clientWidth || 200;
+        h = btn.clientHeight || 52;
+        mainCanvas.width = w;
+        mainCanvas.height = h;
+        if (glowCanvas) {
+          glowCanvas.width = w * 1.14;
+          glowCanvas.height = h * 1.32;
+        }
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      btn.addEventListener('mouseenter', () => { isHovered = true; });
+      btn.addEventListener('mouseleave', () => { isHovered = false; });
+
+      function render() {
+        const speed = isHovered ? 0.045 : 0.016;
+        t += speed;
+
+        function drawTo(ctx, width, height) {
+          if (!ctx) return;
+          const grad = ctx.createLinearGradient(
+            width * 0.5 + Math.sin(t) * width * 0.45,
+            0,
+            width * 0.5 + Math.cos(t * 0.8) * width * 0.45,
+            height
+          );
+          grad.addColorStop(0, COLORS[1]);   // #1E10C5
+          grad.addColorStop(0.25, COLORS[8]); // #4743EF
+          grad.addColorStop(0.55, COLORS[6]); // #0E2DCB
+          grad.addColorStop(0.85, COLORS[10]);// #0B06FC
+          grad.addColorStop(1, COLORS[16]);  // #3F4CC0
+
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, width, height);
+
+          // Chromatic Wave Layers
+          for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            const yBase = height * (0.35 + i * 0.22);
+            ctx.moveTo(0, yBase);
+
+            for (let x = 0; x <= width; x += 8) {
+              const amp = isHovered ? 12 : 7;
+              const y = yBase + Math.sin(x * 0.035 + t * 2.2 + i * 1.6) * amp;
+              ctx.lineTo(x, y);
+            }
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+
+            const waveGrad = ctx.createLinearGradient(0, 0, width, 0);
+            waveGrad.addColorStop(0, COLORS[(i * 3 + 2) % COLORS.length]);
+            waveGrad.addColorStop(0.5, COLORS[(i * 4 + 7) % COLORS.length]);
+            waveGrad.addColorStop(1, COLORS[(i * 2 + 13) % COLORS.length]);
+
+            ctx.fillStyle = waveGrad;
+            ctx.globalAlpha = 0.5;
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1.0;
+        }
+
+        drawTo(mCtx, w, h);
+        if (gCtx) drawTo(gCtx, glowCanvas.width, glowCanvas.height);
+
+        requestAnimationFrame(render);
+      }
+      render();
+    })();
+
+    // =========================================
+    // 1. CrowdCanvas OpenPeeps Slow Movement
+    // =========================================
+    (function initCrowdCanvas() {
+      const canvas = document.getElementById("crowd-canvas");
+      const heroSec = document.getElementById("hero-sec");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const config = {
+        src: "https://cdn.21st.dev/assets/localized/abdb8990a7bef8c2f5af3e45f0a3c969c4b0603fba8be92e81347de4ea4e1ed7.png",
+        rows: 15,
+        cols: 7,
+      };
+
+      const randomRange = (min, max) => min + Math.random() * (max - min);
+      const randomIndex = (array) => randomRange(0, array.length) | 0;
+      const removeFromArray = (array, i) => array.splice(i, 1)[0];
+      const removeItemFromArray = (array, item) => removeFromArray(array, array.indexOf(item));
+      const removeRandomFromArray = (array) => removeFromArray(array, randomIndex(array));
+      const getRandomFromArray = (array) => array[randomIndex(array) | 0];
+
+      const resetPeep = ({ stage, peep }) => {
+        const direction = Math.random() > 0.5 ? 1 : -1;
+        const offsetY = 100 - 250 * gsap.parseEase("power2.in")(Math.random());
+        const startY = stage.height - peep.height + offsetY;
+        let startX, endX;
+
+        if (direction === 1) {
+          startX = -peep.width;
+          endX = stage.width;
+          peep.scaleX = 1;
+        } else {
+          startX = stage.width + peep.width;
+          endX = 0;
+          peep.scaleX = -1;
+        }
+
+        peep.x = startX;
+        peep.y = startY;
+        peep.anchorY = startY;
+
+        return { startX, startY, endX };
+      };
+
+      const normalWalk = ({ peep, props }) => {
+        const { startX, startY, endX } = props;
+        const xDuration = 26;
+        const yDuration = 0.45;
+
+        const tl = gsap.timeline();
+        tl.timeScale(randomRange(0.4, 0.75));
+        tl.to(peep, { duration: xDuration, x: endX, ease: "none" }, 0);
+        tl.to(peep, { duration: yDuration, repeat: Math.round(xDuration / yDuration), yoyo: true, y: startY - 8 }, 0);
+        return tl;
+      };
+
+      const walks = [normalWalk];
+
+      const createPeep = ({ image, rect }) => {
+        const peep = {
+          image,
+          rect: [],
+          width: 0,
+          height: 0,
+          drawArgs: [],
+          x: 0,
+          y: 0,
+          anchorY: 0,
+          scaleX: 1,
+          walk: null,
+          setRect: (r) => {
+            peep.rect = r;
+            peep.width = r[2];
+            peep.height = r[3];
+            peep.drawArgs = [peep.image, ...r, 0, 0, peep.width, peep.height];
+          },
+          render: (c) => {
+            c.save();
+            c.translate(peep.x, peep.y);
+            c.scale(peep.scaleX, 1);
+            c.drawImage(peep.image, peep.rect[0], peep.rect[1], peep.rect[2], peep.rect[3], 0, 0, peep.width, peep.height);
+            c.restore();
+          },
+        };
+        peep.setRect(rect);
+        return peep;
+      };
+
+      const img = document.createElement("img");
+      img.crossOrigin = "anonymous";
+      const stage = { width: 0, height: 0 };
+      const allPeeps = [];
+      const availablePeeps = [];
+      const crowd = [];
+      let isHeroVisible = true;
+
+      const createPeeps = () => {
+        const { rows, cols } = config;
+        const { naturalWidth: width, naturalHeight: height } = img;
+        const total = rows * cols;
+        const rectWidth = width / rows;
+        const rectHeight = height / cols;
+
+        for (let i = 0; i < total; i++) {
+          allPeeps.push(
+            createPeep({
+              image: img,
+              rect: [(i % rows) * rectWidth, ((i / rows) | 0) * rectHeight, rectWidth, rectHeight],
+            })
+          );
+        }
+      };
+
+      const addPeepToCrowd = () => {
+        const peep = removeRandomFromArray(availablePeeps);
+        const walk = getRandomFromArray(walks)({
+          peep,
+          props: resetPeep({ peep, stage }),
+        }).eventCallback("onComplete", () => {
+          removePeepFromCrowd(peep);
+          addPeepToCrowd();
+        });
+
+        peep.walk = walk;
+        crowd.push(peep);
+        crowd.sort((a, b) => a.anchorY - b.anchorY);
+        return peep;
+      };
+
+      const removePeepFromCrowd = (peep) => {
+        removeItemFromArray(crowd, peep);
+        availablePeeps.push(peep);
+      };
+
+      const initCrowd = () => {
+        while (availablePeeps.length) {
+          addPeepToCrowd().walk.progress(Math.random());
+        }
+      };
+
+      const render = () => {
+        if (!isHeroVisible) return; // Sleep when hero is off-screen!
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.scale(devicePixelRatio, devicePixelRatio);
+        crowd.forEach((peep) => peep.render(ctx));
+        ctx.restore();
+      };
+
+      const resize = () => {
+        stage.width = canvas.clientWidth;
+        stage.height = canvas.clientHeight;
+        canvas.width = stage.width * devicePixelRatio;
+        canvas.height = stage.height * devicePixelRatio;
+
+        crowd.forEach((peep) => {
+          if (peep.walk) peep.walk.kill();
+        });
+        crowd.length = 0;
+        availablePeeps.length = 0;
+        availablePeeps.push(...allPeeps);
+        initCrowd();
+      };
+
+      const init = () => {
+        createPeeps();
+        resize();
+        gsap.ticker.add(render);
+      };
+
+      img.onload = init;
+      img.src = config.src;
+      window.addEventListener("resize", resize);
+
+      // Intersection Observer for CPU/GPU efficiency
+      if (heroSec && window.IntersectionObserver) {
+        const io = new IntersectionObserver((entries) => {
+          isHeroVisible = entries[0].isIntersecting;
+        });
+        io.observe(heroSec);
+      }
+    })();
+
+  </script>
+</body>
+</html>
